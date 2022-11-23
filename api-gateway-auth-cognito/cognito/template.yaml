@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Cognito User Pool
+
+Parameters:
+  AppName:
+    Type: String
+    Description: The Name of the application / for the user pool
+  ClientDomains:
+    Type: CommaDelimitedList
+    Description: List of domains allowed to use this userpool
+  AdminEmail:
+    Type: String
+    Description: Email address for the administrator
+  UserEmail:
+    Type: String
+    Description: Email address for a regular user
+  AddGroupsToScopes:
+    Type: String
+    Description: Defines if a scopes are automatically added to users
+    AllowedValues:
+      - true
+      - false
+    Default: false
+
+
+Conditions:
+  CreateScopes: !Equals [!Ref AddGroupsToScopes, 'true' ]
+
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: ! Sub ${AppName}-user-pool
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+        AutoVerifiedAttributes:
+          - email
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: false
+  
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref CognitoUserPool
+      ClientName: !Sub ${AppName}-user-pool-client
+      # if building iOS, go ahead and add a secret
+      GenerateSecret: false # not needed for web clients
+      SuportedIdentityProviders:
+        - COGNITO
+      CallbackUrls: !Ref ClientDomains
+      LogoutUrls: !Ref ClientDomains
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlowsUserPoolClient:
+        - code # for jwt etc
+        - implicit # postman likes implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+
+  
