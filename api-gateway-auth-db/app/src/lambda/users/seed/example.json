@@ -1,0 +1,47 @@
+{
+    "users":[
+        {
+            "username": "john.smith@example.com",
+            "password": "$up3r$3cr3+",
+            "application": "application_one",
+            "first_name": "john",
+            "last_name": "smith"
+        },
+        {
+            "username": "jane.smith@example.com",
+            "password": "$up3r$3cr3+",
+            "application": "application_one",
+            "first_name": "jane",
+            "last_name": "smith"
+        },
+        {
+            "username": "john.smith@example.com",
+            "password": "$up3r$3cr3+",
+            "application": "application_two",
+            "first_name": "john",
+            "last_name": "smith"
+        },
+        {
+            "username": "jane.smith@example.com",
+            "password": "$up3r$3cr3+",
+            "application": "application_two",
+            "first_name": "jane",
+            "last_name": "smith"
+        },
+        {
+            "username": "john.doe@example.com",
+            "password": "$up3r$3cr3+",
+            "application": "application_one",
+            "first_name": "john",
+            "last_name": "doe"
+        },
+        {
+            "username": "jane.doe@example.com",
+            "password": "$up3r$3cr3+",
+            "application": "application_one",
+            "first_name": "jane",
+            "last_name": "doe"
+        }
+        
+    ]
+}

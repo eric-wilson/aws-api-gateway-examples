@@ -1,38 +1,23 @@
 import json
-import requests
 import logging
 
-log = logging.getLogger("users/seed")
+try:
+    from common.user_db_actions import seed_users
+except:
+    from user_db_actions import seed_users
+
 location = "users/seed"
+log = logging.getLogger(location)
+
+
 def lambda_handler(event, context):
     
-    log.info(f'{location}: {json.dumps(event, default=str)}')
-
-    ip = get_ip_address(event=event)
-    
-    success = seed_users()
-
+    log.debug(f'{location}: {json.dumps(event, default=str)}')        
+    success = seed_users(event)
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": f"{location}",
-            "location": ip.text.replace("\n", ""),
+            "message": f"{location}",            
             "action": f'{success}'
         }),
     }
-
-
-def get_ip_address(event):    
-    try:
-        ip = requests.get("http://checkip.amazonaws.com/")
-        return ip
-    except requests.RequestException as e:
-        # Send some context about this error to Lambda Logs
-        print(e)
-        log.error(f'error getting ip address {str(e)}')
-        raise e
-
-def seed_users():
-    log.info(f'todo: {location}')
-
-    return False

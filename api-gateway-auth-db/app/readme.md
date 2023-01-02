@@ -25,3 +25,9 @@ curl https://9upmghlrr7.execute-api.us-east-1.amazonaws.com/users/login \
 
 
 ```
+
+## Action Items
+- [ ] API Gateway
+    - [ ] Login
+    - [ ] List Users (admin)
+    - [ ] /users/{id}/get 

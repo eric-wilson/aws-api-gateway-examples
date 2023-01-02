@@ -1,9 +1,16 @@
 import json
-import requests
 import logging
 import os
 
-log = logging.getLogger("users/login")
+try:
+
+    from common.user_db_actions import validate_user_login
+except:
+    
+    from user_db_actions import validate_user_login
+
+location = "/users/login"
+log = logging.getLogger(location)
 loglevel = os.getenv("LOG_LEVEL")
 # default to info (normal default is warning)
 log.setLevel('INFO')
@@ -11,14 +18,13 @@ log.setLevel('INFO')
 if loglevel:
     log.setLevel(loglevel)
 
-location = "/users/login"
+
 def lambda_handler(event, context):
     
     event_info = f'{location}: {json.dumps(event, default=str)}'
     log.info(event_info)
     print(event_info)
-
-    ip = get_ip_address(event=event)
+    
     success = False
     error = None
     try:
@@ -28,23 +34,11 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "message": f"{location}",
-            "location": ip.text.replace("\n", ""),
+            "message": f"{location}",            
             "action": f'{success}',
             "error": f'{error}'
         }),
     }
-
-
-def get_ip_address(event):    
-    try:
-        ip = requests.get("http://checkip.amazonaws.com/")
-        return ip
-    except requests.RequestException as e:
-        # Send some context about this error to Lambda Logs
-        print(e)
-        log.error(f'error getting ip address {str(e)}')
-        raise e
 
 
 def login(event):
@@ -57,18 +51,17 @@ def login(event):
         log.warning(f'headers was not found in event')
     return None
 
-def login_user(username, password):
+def login_user(username, password, application="application_one"):
     log.info(f'todo: {location}')
 
     log.info(f'username: {username}')
     log.info(f'password: {password}')
 
-    if username == "awslambda" and password == "awspassword":
-        log.info(f'login_user returning true')
-        return True
 
-    log.info(f'login_user returning false')
-    return False
+    valid = validate_user_login(username, password, application)
+
+
+    return valid
 
 def get_json_data(varname, parameter):
 

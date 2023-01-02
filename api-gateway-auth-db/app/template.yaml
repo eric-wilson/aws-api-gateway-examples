@@ -24,6 +24,17 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
   
+  UserCommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: user-functions-common-layer
+      Description: common user functions
+      ContentUri: src/lambda/users/common
+      CompatibleRuntimes:
+        - python3.9
+    Metadata:
+      BuildMethod: python3.9
+
   UserLoginFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -32,6 +43,8 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Layers:
+        - !Ref UserCommonLayer
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref ApplicationTable
@@ -50,6 +63,8 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Layers:
+        - !Ref UserCommonLayer
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ApplicationTable
