@@ -6,15 +6,21 @@ Parameters:
   AppName:
     Type: String
     Description: The Name of the application / for the user pool
-  ClientDomains:
+    Default: "demo-fudgesicle"
+  CallbackUrls:
     Type: CommaDelimitedList
     Description: List of domains allowed to use this userpool
-  AdminEmail:
+    Default: "https://geekcafe.com/callback,https://example.com/callback"
+  LogoutUrls:
+    Type: CommaDelimitedList
+    Description: List of domains allowed to use this userpool
+    Default: "https://geekcafe.com/signout,https://example.com/signout"
+  AdminUserEmail:
     Type: String
-    Description: Email address for the administrator
-  UserEmail:
+    Description: Email address for the administrator. Leave empty if you don't want one created.  Usefull in demos or lower environments.
+  RegularUserEmail:
     Type: String
-    Description: Email address for a regular user
+    Description: Email address for a regular user. Leave empty if you don't want one created. Usefull in demos or lower environments.
   AddGroupsToScopes:
     Type: String
     Description: Defines if a scopes are automatically added to users
@@ -23,38 +29,53 @@ Parameters:
       - false
     Default: false
 
-
+  CustomDomainName:
+    Type: String
+    Description: The domain name you want to setup for custom loging example auth.example.com
+    Default: "auth.geekcafe.com"
+  SSLCertificateArn:
+    Type: String
+    Description: the ssl certification for the 
+    Default: "arn:aws:acm:us-east-1:484433161997:certificate/78a33fd3-2ab3-449f-b60e-cc2db86bc080"
 Conditions:
   CreateScopes: !Equals [!Ref AddGroupsToScopes, 'true' ]
+  CreateRegularUserEmail: !Not [ !Equals [!Ref RegularUserEmail, "" ] ]
+  CreateAdminUserEmail: !Not [ !Equals [!Ref AdminUserEmail, "" ] ]
+  CreateCustomDomainName: !Not [ !Equals [!Ref CustomDomainName, "" ] ]
+  AddSSLCert: !Not [ !Equals [!Ref SSLCertificateArn, "" ] ]
 
 Resources:
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: ! Sub ${AppName}-user-pool
+      UserPoolName: !Sub ${AppName}-user-pool
       Policies:
         PasswordPolicy:
           MinimumLength: 8
-        AutoVerifiedAttributes:
-          - email
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
       Schema:
         - AttributeDataType: String
           Name: email
           Required: false
   
+  # this is where you can build out custom scopes per user pool
+  # would like some more detail on this
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref CognitoUserPool
       ClientName: !Sub ${AppName}-user-pool-client
       # if building iOS, go ahead and add a secret
-      GenerateSecret: false # not needed for web clients
-      SuportedIdentityProviders:
+      GenerateSecret: false # not needed for web clients      
+      SupportedIdentityProviders:
         - COGNITO
-      CallbackUrls: !Ref ClientDomains
-      LogoutUrls: !Ref ClientDomains
+      CallbackURLs: !Ref CallbackUrls
+      LogoutURLs: !Ref LogoutUrls
       AllowedOAuthFlowsUserPoolClient: true
-      AllowedOAuthFlowsUserPoolClient:
+      AllowedOAuthFlows:
         - code # for jwt etc
         - implicit # postman likes implicit
       AllowedOAuthScopes:
@@ -62,4 +83,21 @@ Resources:
         - openid
         - profile
 
-  
+  ## add a custom domain
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Condition: CreateCustomDomainName
+    Properties:
+      # the domain you want to bind 
+      Domain:  !Ref CustomDomainName #!Sub ${AppName}-${AWS::AccountId}
+      # tie it to the user pool we created above
+      UserPoolId: !Ref CognitoUserPool
+      CustomDomainConfig:
+        CertificateArn: !If [ AddSSLCert, !Ref SSLCertificateArn, !Ref AWS::NoValue]
+
+Outputs:
+    CognitoUserPoolId:
+      Description: The Cognito User Pool Id
+      Value: !Ref CognitoUserPool
+      Export:
+        Name: !Sub ${AppName}:UserPoolId

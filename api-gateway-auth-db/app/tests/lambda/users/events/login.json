@@ -1,0 +1,41 @@
+{
+    "version": "2.0",
+    "routeKey": "POST /users/login",
+    "rawPath": "/users/login",
+    "rawQueryString": "",
+    "headers": {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "content-length": "60",
+        "content-type": "text/plain",
+        "host": "9upmghlrr7.execute-api.us-east-1.amazonaws.com",
+        "password": "awspassword",
+        "postman-token": "b35a08ac-5e0d-4978-b388-a4c51e13d742",
+        "user-agent": "PostmanRuntime/7.29.0",
+        "username": "awslambda",
+        "x-amzn-trace-id": "Root=1-63b33f8e-7ca31f564a8d34fc7debbfe3",
+        "x-forwarded-for": "136.56.44.175",
+        "x-forwarded-port": "443",
+        "x-forwarded-proto": "https"
+    },
+    "requestContext": {
+        "accountId": "484433161997",
+        "apiId": "9upmghlrr7",
+        "domainName": "9upmghlrr7.execute-api.us-east-1.amazonaws.com",
+        "domainPrefix": "9upmghlrr7",
+        "http": {
+            "method": "POST",
+            "path": "/users/login",
+            "protocol": "HTTP/1.1",
+            "sourceIp": "136.56.44.175",
+            "userAgent": "PostmanRuntime/7.29.0"
+        },
+        "requestId": "eIbeWjk0IAMEPGA=",
+        "routeKey": "POST /users/login",
+        "stage": "$default",
+        "time": "02/Jan/2023:20:33:18 +0000",
+        "timeEpoch": 1672691598886
+    },
+    "body": "{\n  \"usernanme\": \"awslambda\",\n  \"password\": \"aswpassword\"\n\n}",
+    "isBase64Encoded": false
+}

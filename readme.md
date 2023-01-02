@@ -10,3 +10,6 @@ create basic infrastructure for:
 
 ## Instructions
 - # aws-api-gateway-examples
+
+
+https://aws.amazon.com/blogs/compute/introducing-aws-sam-pipelines-automatically-generate-deployment-pipelines-for-serverless-applications/
