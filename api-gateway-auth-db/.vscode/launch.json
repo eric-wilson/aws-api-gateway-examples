@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }, 
+        {
+            "name": "Python: Current File Base Path",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH":"${PYTHONPATH}:${workspaceRoot};/Users/eric.wilson/working/aws/api-gateway/api-gateway-auth-db/app;/Users/eric.wilson/working/aws/api-gateway/api-gateway-auth-db/Users/eric.wilson/working/aws/api-gateway/api-gateway-auth-db/app/src"
+            }
+        },
+        
+    ]
+}

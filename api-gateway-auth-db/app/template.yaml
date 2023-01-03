@@ -29,16 +29,37 @@ Resources:
     Properties:
       LayerName: user-functions-common-layer
       Description: common user functions
-      ContentUri: src/lambda/users/common
+      ContentUri: src/lambda_functions/users/common
       CompatibleRuntimes:
         - python3.9
     Metadata:
       BuildMethod: python3.9
 
+  
   UserLoginFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: src/lambda/users/login
+      CodeUri: src/lambda_functions/users/login
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UserCommonLayer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ApplicationTable
+      Events:
+        LoginUser:
+          Type: HttpApi
+          Properties:
+            Path: /login
+            Method: POST
+
+  UserListFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/lambda_functions/users/list
       Handler: app.lambda_handler
       Runtime: python3.9
       Architectures:
@@ -52,13 +73,14 @@ Resources:
         GetAllItems:
           Type: HttpApi
           Properties:
-            Path: /users/login
-            Method: POST
+            Path: /users
+            Method: GET
+
 
   UserSeed:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: src/lambda/users/seed
+      CodeUri: src/lambda_functions/users/seed
       Handler: app.lambda_handler
       Runtime: python3.9
       Architectures:

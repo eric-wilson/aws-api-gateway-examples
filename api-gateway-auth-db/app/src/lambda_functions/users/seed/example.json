@@ -1,0 +1,71 @@
+{
+    "users": [
+      {
+        "id": "3eddfcce-76e7-4063-8548-de66ab375f45",
+        "username": "john.smith@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_one",
+        "first_name": "john",
+        "last_name": "smith",
+        "scopes": [
+          "admin",
+          "user",
+          "super-user"
+        ]
+      },
+      {
+        "id": "df6b7b59-6568-44b8-871d-dd3ee725df52",
+        "username": "jane.smith@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_one",
+        "first_name": "jane",
+        "last_name": "smith",
+        "scopes": [
+          "admin",
+          "user",
+          "super-user"
+        ]
+      },
+      {
+        "id": "3f866902-9b89-4487-ac49-0f27240aeb83",
+        "username": "john.smith@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_two",
+        "first_name": "john",
+        "last_name": "smith"
+      },
+      {
+        "id": "c1efde5e-a58c-416f-a108-7a1d7b3f290a",
+        "username": "jane.smith@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_two",
+        "first_name": "jane",
+        "last_name": "smith",
+        "scopes": [
+          "admin"
+        ]
+      },
+      {
+        "id": "3ad71999-6220-48a4-a757-576c5ec6872d",
+        "username": "john.doe@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_one",
+        "first_name": "john",
+        "last_name": "doe",
+        "scopes": [
+          "tester"
+        ]
+      },
+      {
+        "id": "58ca3215-dfd4-4274-a87e-fc92d06a3e37",
+        "username": "jane.doe@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_one",
+        "first_name": "jane",
+        "last_name": "doe",
+        "scopes": [
+          "tester"
+        ]
+      }
+    ]
+  }
