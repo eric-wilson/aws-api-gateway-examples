@@ -3,6 +3,14 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   AWS Application example using a dynamodb table for a single application
 
+Parameters:
+  CompanyName:
+    Type: String
+    Default: "geekcafe"
+  ApplicationName:
+    Type: String
+    Default: "jwt-proprietary-db"
+
 Resources:
 
   ApplicationTable:
@@ -35,7 +43,128 @@ Resources:
     Metadata:
       BuildMethod: python3.9
 
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      # FailOnWarnings is so helpful, to troubleshoot why things like authorizers aren't deploying 
+      FailOnWarnings: true
+      Auth:
+        Authorizers:
+          HttpApiLambdaAuthorizer:
+            FunctionPayloadType: REQUEST
+            AuthorizerPayloadFormatVersion: 2.0
+            EnableSimpleResponses: true
+            FunctionArn: !GetAtt HttpApiLambdaFunctionAuthorizer.Arn              
+            FunctionInvokeRole: !GetAtt HttpApiLambdaFunctionAuthorizerRole.Arn             
+            Identity:
+              Headers:
+                - Authorization
+        #EnableIamAuthorizer: False
+        DefaultAuthorizer: HttpApiLambdaAuthorizer
   
+# TestAuthorizer:
+#   Type: 'AWS::ApiGatewayV2::Authorizer'sam
+#   Properties:
+#     Name: LambdaAuthorizer
+#     ApiId: !Ref HttpApi
+#     AuthorizerType: REQUEST
+#     AuthorizerCredentialsArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/APIGatewayLambdaInvokeRole'
+#     AuthorizerUri: !Join 
+#       - ''
+#       - - 'arn:'
+#         - !Ref 'AWS::Partition'
+#         - ':apigateway:'
+#         - !Ref 'AWS::Region'
+#         - ':lambda:path/2015-03-31/functions/'
+#         - /invocations
+#     AuthorizerResultTtlInSeconds: 5
+#     IdentitySource:
+#       - $request.header.Authorization
+
+  # HttpApiAuthorizer:
+  #   Type: AWS::ApiGatewayV2::Authorizer
+  #   Properties: 
+  #     ApiId: !Ref HttpApi
+  #     #AuthorizerCredentialsArn: RoleArn
+  #     AuthorizerPayloadFormatVersion: 2.0
+  #     AuthorizerResultTtlInSeconds: 5
+  #     AuthorizerType: REQUEST
+  #     AuthorizerUri: !Ref HttpApiLambdaFunctionAuthorizer
+  #     EnableSimpleResponses: True
+  #     IdentitySource: 
+  #       - $request.header.Authorization
+  #     # IdentityValidationExpression: String
+  #     # JwtConfiguration: 
+  #     #   JWTConfiguration
+  #     Name: custom-authorizer
+
+  MyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      #StageName: Prod
+      Auth:
+        DefaultAuthorizer: MyLambdaTokenAuthorizer
+        Authorizers:
+          MyLambdaTokenAuthorizer:
+            FunctionArn: !GetAtt MyAuthFunction.Arn
+            FunctionInvokeRole: !GetAtt MyAuthFunctionRole.Arn
+            Identity:
+              Headers:
+                - Authorization
+            AuthorizerPayloadFormatVersion: 2.0
+            EnableSimpleResponses: true
+  MyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/lambda_functions/users/list
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Events:
+        GetUsers2:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref MyApi
+            Path: /users2
+            Method: get
+            #PayloadFormatVersion: "2.0"
+
+  MyAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/lambda_functions/authentication/authorizer
+      Handler: app.lambda_handler
+      Runtime: python3.9
+
+  ## setting up a stage so I can add monitoring    
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: logging
+      Description: Test Stage Configuration for logging
+      #DeploymentId: !Ref MyDeployment
+      ApiId: !Ref HttpApi
+      #DefaultRouteSettings:
+        #DetailedMetricsEnabled: true
+        #LoggingLevel: INFO
+        #DataTraceEnabled: false
+        # ThrottlingBurstLimit: 10
+        # ThrottlingRateLimit: 10
+      AccessLogSettings:
+        DestinationArn: !GetAtt HttpApiLogGroup.Arn
+        Format: >-
+          '{ 
+          "requestId":"$context.requestId", 
+          "ip": "$context.identity.sourceIp", 
+          "caller":"$context.identity.caller", 
+          "user":"$context.identity.user", 
+          "requestTime":"$context.requestTime", 
+          "routeKey":"$context.routeKey", 
+          "status":"$context.status", 
+          "integrationErrors": "$context.integrationErrorMessage", 
+          "errors": "$context.error.message",
+          "authError": "$context.authorizer.message" 
+          }'
+
   UserLoginFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -55,6 +184,7 @@ Resources:
           Properties:
             Path: /login
             Method: POST
+            ApiId: !Ref HttpApi
 
   UserListFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -75,6 +205,11 @@ Resources:
           Properties:
             Path: /users
             Method: GET
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: HttpApiLambdaAuthorizer
+              
+            
 
 
   UserSeed:
@@ -90,10 +225,39 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ApplicationTable
+  
+
+  HttpApiLambdaFunctionAuthorizer:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/lambda_functions/authentication/authorizer
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UserCommonLayer
+      Events:
+        LoginUser:
+          Type: HttpApi
+          Properties:
+            Path: /authorizer
+            Method: POST
+            ApiId: !Ref HttpApi
+
+
+  HttpApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/${CompanyName}/${ApplicationName}/${HttpApi}"
+      RetentionInDays: 30
+
+ 
+
 Outputs:
-  UserLoginApi:
+  ApiUri:
     Description: "API Gateway endpoint URL for Prod stage for User Login function"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/users/login"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
   UserLoginFunction:
     Description: "User Login Lambda Function ARN"
     Value: !GetAtt UserLoginFunction.Arn
