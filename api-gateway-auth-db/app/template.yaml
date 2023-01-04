@@ -16,7 +16,7 @@ Resources:
   ApplicationTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: ApplicationTable
+      TableName: !Sub "AppTable-${AWS::StackName}"
       AttributeDefinitions:
         - AttributeName: pk
           AttributeType: S
@@ -51,104 +51,16 @@ Resources:
       Auth:
         Authorizers:
           HttpApiLambdaAuthorizer:
-            FunctionPayloadType: REQUEST
+            #FunctionPayloadType: REQUEST
             AuthorizerPayloadFormatVersion: 2.0
             EnableSimpleResponses: true
             FunctionArn: !GetAtt HttpApiLambdaFunctionAuthorizer.Arn              
-            FunctionInvokeRole: !GetAtt HttpApiLambdaFunctionAuthorizerRole.Arn             
+            #FunctionInvokeRole: !GetAtt HttpApiLambdaFunctionAuthorizerRole.Arn             
             Identity:
               Headers:
                 - Authorization
         #EnableIamAuthorizer: False
-        DefaultAuthorizer: HttpApiLambdaAuthorizer
-  
-# TestAuthorizer:
-#   Type: 'AWS::ApiGatewayV2::Authorizer'sam
-#   Properties:
-#     Name: LambdaAuthorizer
-#     ApiId: !Ref HttpApi
-#     AuthorizerType: REQUEST
-#     AuthorizerCredentialsArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/APIGatewayLambdaInvokeRole'
-#     AuthorizerUri: !Join 
-#       - ''
-#       - - 'arn:'
-#         - !Ref 'AWS::Partition'
-#         - ':apigateway:'
-#         - !Ref 'AWS::Region'
-#         - ':lambda:path/2015-03-31/functions/'
-#         - /invocations
-#     AuthorizerResultTtlInSeconds: 5
-#     IdentitySource:
-#       - $request.header.Authorization
-
-  # HttpApiAuthorizer:
-  #   Type: AWS::ApiGatewayV2::Authorizer
-  #   Properties: 
-  #     ApiId: !Ref HttpApi
-  #     #AuthorizerCredentialsArn: RoleArn
-  #     AuthorizerPayloadFormatVersion: 2.0
-  #     AuthorizerResultTtlInSeconds: 5
-  #     AuthorizerType: REQUEST
-  #     AuthorizerUri: !Ref HttpApiLambdaFunctionAuthorizer
-  #     EnableSimpleResponses: True
-  #     IdentitySource: 
-  #       - $request.header.Authorization
-  #     # IdentityValidationExpression: String
-  #     # JwtConfiguration: 
-  #     #   JWTConfiguration
-  #     Name: custom-authorizer
-
-  MyApi:
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      #StageName: Prod
-      Auth:
-        DefaultAuthorizer: MyLambdaTokenAuthorizer
-        Authorizers:
-          MyLambdaTokenAuthorizer:
-            FunctionArn: !GetAtt MyAuthFunction.Arn
-            FunctionInvokeRole: !GetAtt MyAuthFunctionRole.Arn
-            Identity:
-              Headers:
-                - Authorization
-            AuthorizerPayloadFormatVersion: 2.0
-            EnableSimpleResponses: true
-  MyFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/lambda_functions/users/list
-      Handler: app.lambda_handler
-      Runtime: python3.9
-      Events:
-        GetUsers2:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref MyApi
-            Path: /users2
-            Method: get
-            #PayloadFormatVersion: "2.0"
-
-  MyAuthFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/lambda_functions/authentication/authorizer
-      Handler: app.lambda_handler
-      Runtime: python3.9
-
-  ## setting up a stage so I can add monitoring    
-  HttpApiStage:
-    Type: AWS::ApiGatewayV2::Stage
-    Properties:
-      StageName: logging
-      Description: Test Stage Configuration for logging
-      #DeploymentId: !Ref MyDeployment
-      ApiId: !Ref HttpApi
-      #DefaultRouteSettings:
-        #DetailedMetricsEnabled: true
-        #LoggingLevel: INFO
-        #DataTraceEnabled: false
-        # ThrottlingBurstLimit: 10
-        # ThrottlingRateLimit: 10
+        #DefaultAuthorizer: HttpApiLambdaAuthorizer
       AccessLogSettings:
         DestinationArn: !GetAtt HttpApiLogGroup.Arn
         Format: >-
@@ -164,6 +76,10 @@ Resources:
           "errors": "$context.error.message",
           "authError": "$context.authorizer.message" 
           }'
+
+
+  
+      
 
   UserLoginFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
