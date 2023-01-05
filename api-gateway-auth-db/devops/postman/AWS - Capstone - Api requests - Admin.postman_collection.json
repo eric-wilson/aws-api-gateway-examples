@@ -1,0 +1,304 @@
+{
+	"info": {
+		"_postman_id": "75323673-0449-46e7-8a48-23525d27a37d",
+		"name": "AWS - Capstone - Api requests - Admin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11050861"
+	},
+	"item": [
+		{
+			"name": "User:Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"token = jsonData.token",
+							"pm.collectionVariables.set(\"jwt_token\", token);",
+							"",
+							"console.log('token updated to:' + token )"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "username",
+						"value": "john.smith@example.com",
+						"type": "text"
+					},
+					{
+						"key": "password",
+						"value": "$up3r$3cr3+",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{ApiGatewayId}}.execute-api.us-east-1.amazonaws.com/login",
+					"protocol": "https",
+					"host": [
+						"{{ApiGatewayId}}",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User:List",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "username",
+						"value": "john.smith@example.com",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "password",
+						"value": "$up3r$3cr3+",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{ApiGatewayId}}.execute-api.us-east-1.amazonaws.com/users",
+					"protocol": "https",
+					"host": [
+						"{{ApiGatewayId}}",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User:List - Expired Token",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{expired_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "username",
+						"value": "john.smith@example.com",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "password",
+						"value": "$up3r$3cr3+",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{ApiGatewayId}}.execute-api.us-east-1.amazonaws.com/users",
+					"protocol": "https",
+					"host": [
+						"{{ApiGatewayId}}",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth: View Token",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "username",
+						"value": "john.smith@example.com",
+						"type": "text"
+					},
+					{
+						"key": "password",
+						"value": "$up3r$3cr3+",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{ApiGatewayId}}.execute-api.us-east-1.amazonaws.com/token/view",
+					"protocol": "https",
+					"host": [
+						"{{ApiGatewayId}}",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"token",
+						"view"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth: Valiate Token",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "username",
+						"value": "john.smith@example.com",
+						"type": "text"
+					},
+					{
+						"key": "password",
+						"value": "$up3r$3cr3+",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{ApiGatewayId}}.execute-api.us-east-1.amazonaws.com/token/validate",
+					"protocol": "https",
+					"host": [
+						"{{ApiGatewayId}}",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"token",
+						"validate"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "ApiGatewayId",
+			"value": "8pb3ykdlzf"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "expired_token",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWYiOiJjMTgwOGMxNi1lYjU2LTQwMzktYTdmOC00MWJhODliOWE5ZjQiLCJhdWQiOiJhcHBsaWNhdGlvbl9vbmUiLCJlbWFpbCI6ImpvaG4uc21pdGhAZXhhbXBsZS5jb20iLCJleHAiOjE2NzI5NDE5MDIsInNjb3BlIjoiWydhZG1pbicsICd1c2VyJywgJ3N1cGVyLXVzZXInXSIsInVzZXIiOiJqb2huIHNtaXRoIn0.-Jk1ajq5C-kWBkvpBkSRfOBeHOWm1vtOcdIK9IsJoqE",
+			"type": "string"
+		}
+	]
+}

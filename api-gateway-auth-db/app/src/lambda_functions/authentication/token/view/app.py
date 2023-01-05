@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         "body": json.dumps({
             "location": f"{location}",                        
             "error": f'{error}',
-            "token": f'{token}'
+            "token": token
         }),
     }
 

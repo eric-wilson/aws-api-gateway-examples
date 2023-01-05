@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        ".venv",
+        "../.venv",
+        "./app/src/lambda_functions/users",
+        "./app/src/lambda_functions/users/common"
+    ]
+}

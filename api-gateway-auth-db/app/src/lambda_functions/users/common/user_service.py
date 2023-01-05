@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from user_db_actions import get_user
+from user_db_actions import get_user, get_application_users
 from user_validation import validate_user_login
 from user_db_model import UserModel
 from jwt_token_service import RequestModel, TokenService
@@ -78,3 +78,13 @@ class UserService():
             
         else:
             log.error('You must load and login with a user before attempting to generate a token')
+
+    def get_users(self):
+        
+        try:            
+            dynamo_users = get_application_users()
+            # todo map the results to an our internal user object
+            return dynamo_users
+        except Exception as e:
+            log.error(f"error getting users: {str(e)}" )
+            raise e

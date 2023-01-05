@@ -1,0 +1,64 @@
+{
+    "location": "/users/list",
+    "users": {
+        "Items": [
+            {
+                "gsi_id": "user_id#3ad71999-6220-48a4-a757-576c5ec6872d",
+                "password": "fad7dddddd76ad26352748102bbfa67771e450982c2e173a10f63f22f5658fa6b5930091fd78c30e717e73278b503859",
+                "last_name": "doe",
+                "updated_date_time_utc": "2023-01-05 17:05:20.363142",
+                "first_name": "john",
+                "sk": "app#application_one",
+                "scopes": "['tester']",
+                "pk": "user#john.doe@example.com"
+            },
+            {
+                "gsi_id": "user_id#3eddfcce-76e7-4063-8548-de66ab375f45",
+                "password": "5493bbbcca63c44a505400c735926aec1088c86f187f7396cc1e181935929e3d16c43b58e4a93ed846daab3caf8ac3ae",
+                "last_name": "smith",
+                "updated_date_time_utc": "2023-01-05 17:05:20.042492",
+                "first_name": "john",
+                "sk": "app#application_one",
+                "scopes": "['admin', 'user', 'super-user']",
+                "pk": "user#john.smith@example.com"
+            },
+            {
+                "gsi_id": "user_id#58ca3215-dfd4-4274-a87e-fc92d06a3e37",
+                "password": "c8a835e28f60424f52f2aedcd354d830ea9426018b29df8ed8b91db42559bc3b8612fe3c8c36e4870d4b5509672ee30a",
+                "last_name": "doe",
+                "updated_date_time_utc": "2023-01-05 17:05:20.403200",
+                "first_name": "jane",
+                "sk": "app#application_one",
+                "scopes": "['tester']",
+                "pk": "user#jane.doe@example.com"
+            },
+            {
+                "gsi_id": "user_id#df6b7b59-6568-44b8-871d-dd3ee725df52",
+                "password": "3bcc3d4d66ebcc24e62b1f173c8ca53a140268d793c9471c46f3b1ea566f2d53bb93447de1139ac217497ec99382dfac",
+                "last_name": "smith",
+                "updated_date_time_utc": "2023-01-05 17:05:20.272387",
+                "first_name": "jane",
+                "sk": "app#application_one",
+                "scopes": "['admin', 'user', 'super-user']",
+                "pk": "user#jane.smith@example.com"
+            }
+        ],
+        "Count": 4,
+        "ScannedCount": 4,
+        "ResponseMetadata": {
+            "RequestId": "OUIDEL8IDR4MLKL0S3A3T6HEVJVV4KQNSO5AEMVJF66Q9ASUAAJG",
+            "HTTPStatusCode": 200,
+            "HTTPHeaders": {
+                "server": "Server",
+                "date": "Thu, 05 Jan 2023 18:55:10 GMT",
+                "content-type": "application/x-amz-json-1.0",
+                "content-length": "1644",
+                "connection": "keep-alive",
+                "x-amzn-requestid": "OUIDEL8IDR4MLKL0S3A3T6HEVJVV4KQNSO5AEMVJF66Q9ASUAAJG",
+                "x-amz-crc32": "4170027104"
+            },
+            "RetryAttempts": 0
+        }
+    },
+    "errors": null
+}

@@ -6,21 +6,23 @@ Description: >
 Parameters:
   CompanyName:
     Type: String
-    Default: "geekcafe"
+    Default: "acme.inc"
   ApplicationName:
     Type: String
-    Default: "jwt-proprietary-db"
+    Default: "application-abc"
 
 Resources:
 
   ApplicationTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub "AppTable-${AWS::StackName}"
+      TableName: !Sub "${ApplicationName}-${AWS::StackName}"
       AttributeDefinitions:
         - AttributeName: pk
           AttributeType: S
         - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi_id
           AttributeType: S      
       KeySchema:
         - AttributeName: pk
@@ -31,7 +33,39 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-  
+      GlobalSecondaryIndexes:
+        - IndexName: gsi_id          
+          KeySchema:
+            - AttributeName: gsi_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput: 
+             ReadCapacityUnits: 5
+             WriteCapacityUnits: 5
+        # ability to query the sort key directly
+        - IndexName: gsi_sk          
+          KeySchema:
+            - AttributeName: sk
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput: 
+             ReadCapacityUnits: 5
+             WriteCapacityUnits: 5
+        - IndexName: gsi_sk_min          
+          KeySchema:
+            - AttributeName: sk
+              KeyType: HASH
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - last_name
+              - first_name
+              - gsi_id
+          ProvisionedThroughput: 
+             ReadCapacityUnits: 5
+             WriteCapacityUnits: 5
   UserCommonLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -50,17 +84,31 @@ Resources:
       FailOnWarnings: true
       Auth:
         Authorizers:
-          HttpApiLambdaAuthorizer:
-            #FunctionPayloadType: REQUEST
+          AdminAuthorizer:            
             AuthorizerResultTtlInSeconds: 5
             AuthorizerPayloadFormatVersion: 2.0
             EnableSimpleResponses: true
-            FunctionArn: !GetAtt HttpApiLambdaFunctionAuthorizer.Arn              
-            #FunctionInvokeRole: !GetAtt HttpApiLambdaFunctionAuthorizerRole.Arn             
+            FunctionArn: !GetAtt HttpApiAdminAuthorizer.Arn                          
             Identity:
               Headers:
                 - Authorization
-           
+          UserAuthorizer:            
+            AuthorizerResultTtlInSeconds: 5
+            AuthorizerPayloadFormatVersion: 2.0
+            EnableSimpleResponses: true
+            FunctionArn: !GetAtt HttpApiUserAuthorizer.Arn                          
+            Identity:
+              Headers:
+                - Authorization
+          SuperUserAuthorizer:            
+            AuthorizerResultTtlInSeconds: 5
+            AuthorizerPayloadFormatVersion: 2.0
+            EnableSimpleResponses: true
+            FunctionArn: !GetAtt HttpApiSuperUserAuthorizer.Arn                          
+            Identity:
+              Headers:
+                - Authorization
+
       AccessLogSettings:
         # add logging
         DestinationArn: !GetAtt HttpApiLogGroup.Arn
@@ -92,7 +140,7 @@ Resources:
   #     AuthorizerType: REQUEST
   #     #AuthorizerCredentialsArn: Arn
   #     AuthorizerUri: !Sub >-
-  #       arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HttpApiLambdaFunctionAuthorizer.Arn}/invocations
+  #       arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HttpApiAdminAuthorizer.Arn}/invocations
         
   #     AuthorizerPayloadFormatVersion: 2.0      
   #     AuthorizerResultTtlInSeconds: 5
@@ -146,7 +194,7 @@ Resources:
             Method: GET
             ApiId: !Ref HttpApi
             Auth:
-              Authorizer: HttpApiLambdaAuthorizer
+              Authorizer: AdminAuthorizer
       Timeout: 300
       Environment:
         Variables:
@@ -214,7 +262,7 @@ Resources:
           TABLE_NAME: !Ref ApplicationTable
      
 
-  HttpApiLambdaFunctionAuthorizer:
+  HttpApiAdminAuthorizer:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: src/lambda_functions/authentication/authorizer
@@ -224,13 +272,62 @@ Resources:
         - x86_64
       Layers:
         - !Ref UserCommonLayer
-     
+      Environment:
+        Variables:
+          ALLOWED_SCOPES: "[admin]"
 
-  AuthorizerPermissionToInvoke:
+  AdminAuthorizerPermissionToInvoke:
      Type: AWS::Lambda::Permission
      Properties:
        Principal: apigateway.amazonaws.com
-       FunctionName: !Ref HttpApiLambdaFunctionAuthorizer       
+       FunctionName: !Ref HttpApiAdminAuthorizer       
+       Action: lambda:InvokeFunction
+       # I'm not crazy about the wild card but we can't get the authorizerid back
+       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/authorizers/*"
+
+
+  HttpApiUserAuthorizer:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/lambda_functions/authentication/authorizer
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UserCommonLayer
+      Environment:
+        Variables:
+          ALLOWED_SCOPES: "[user,admin,super-user]"
+
+  UserAuthorizerPermissionToInvoke:
+     Type: AWS::Lambda::Permission
+     Properties:
+       Principal: apigateway.amazonaws.com
+       FunctionName: !Ref HttpApiUserAuthorizer       
+       Action: lambda:InvokeFunction
+       # I'm not crazy about the wild card but we can't get the authorizerid back
+       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/authorizers/*"
+
+  HttpApiSuperUserAuthorizer:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/lambda_functions/authentication/authorizer
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UserCommonLayer
+      Environment:
+        Variables:
+          ALLOWED_SCOPES: "[super-user,admin]"
+
+  SuperUserAuthorizerPermissionToInvoke:
+     Type: AWS::Lambda::Permission
+     Properties:
+       Principal: apigateway.amazonaws.com
+       FunctionName: !Ref HttpApiSuperUserAuthorizer       
        Action: lambda:InvokeFunction
        # I'm not crazy about the wild card but we can't get the authorizerid back
        SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/authorizers/*"

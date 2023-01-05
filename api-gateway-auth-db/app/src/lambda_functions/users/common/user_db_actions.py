@@ -1,4 +1,6 @@
 import boto3
+from boto3.dynamodb.conditions import Key
+
 import logging
 import datetime
 import os
@@ -19,50 +21,97 @@ table = dynamodb_resource.Table(table_name)
 log.setLevel('INFO')
 
 
+def get_application_users(application="application_one", min=True):
+
+    filtering_exp = Key("sk").eq(f"app#{application}")
+
+    index="gsi_sk_min"
+    if not min:
+        index ="gsi_sk"
+    
+    # query the sort key based on our gsi that is pointint to it
+    response = table.query(
+        IndexName=f"{index}",
+        KeyConditionExpression=filtering_exp,        
+    )
+            
+
+    return response
+
+
 def get_user(username, application="application_one", include_attributes = False) -> UserModel: 
     
-    user_id = generate_user_id(username, application)
-    
+       
     if include_attributes: 
         response = dynamodb_client.get_item(
             TableName=table_name,
                 Key={
-                    'pk': {'S': f'user-id#{user_id}'},
-                    'sk': {'S': f'user#{username}'}
+                    'pk': {'S': f'user#{username}'},
+                    'sk': {'S': f'app#{application}'}
                 }
             )
     else:
         
         response = table.get_item(            
                 Key={
-                    'pk': f'user-id#{user_id}',
-                    'sk': f'user#{username}'
+                    'pk': f'user#{username}',
+                    'sk': f'app#{application}'
                 }
             )
 
     log.info(f'user response: {response}')
 
+    return __load_user_object(response, f"username:{username} application:{application}")
+
+def get_user_by_id(id, include_attributes = False) -> UserModel: 
+    
+    #user_id = generate_user_id(username, application)
+    
+    if include_attributes: 
+        response = dynamodb_client.get_item(
+            TableName=table_name,
+                Key={
+                    'gsi_id': {'S': f'user_id#{id}'}                    
+                }
+            )
+    else:
+        
+        response = table.get_item(            
+                Key={
+                    'gsi_id': f'user_id#{id}',                    
+                }
+            )
+
+    log.info(f'user response: {response}')
+    return __load_user_object(response, f"id:{id}")
+    
+
+
+def __load_user_object(dynamodb_response, keys):
+
+
     try:
-        if "Item" in response:
-            item = response['Item']
+        if "Item" in dynamodb_response:
+            item = dynamodb_response['Item']
             log.info(f'user item info: {item}')
             user = UserModel()
             user.first_name = item["first_name"]
             user.last_name = item["last_name"]
-            user.email = str(item["sk"]).removeprefix("user#")
-            user.id = str(item["pk"]).removeprefix("user-id#")
+            user.email = str(item["pk"]).removeprefix("user#")
+            user.id = str(item["gsi_id"]).removeprefix("user_id#")
             user.hashed_password = item["password"]
             user.scopes = item["scopes"]
-            user.application = application
+            user.application = str(item["sk"]).removeprefix("app#")
             return user
         else:
-            log.info(f'user not found for {username} / {application}')
+            log.info(f'user not found for keys: {keys}')
             return None
     except Exception as e:
-        log.error(f'error getting user: {username} / {application}. {str(e)}')
+        log.error(f'error getting keys: {keys}. {str(e)}')
         return None
 
 
+    
 def seed_users(event):
     log.info(f'todo: {location}')
     
@@ -90,14 +139,14 @@ def seed_users(event):
 def seed_user(id, username, password, application, first_name, last_name, scopes=''):
 
     hashed_password = generate_hashed_password(username, password, application)
-    #if id is None:
-    id = generate_user_id(username, application)
+    if id is None:
+        id = generate_user_id(username, application)
     dynamodb_client.put_item(
         TableName=f'{table_name}', 
         Item={
-            'pk': {'S': f'user-id#{id}'},
-            'sk':{'S':f'user#{username}'},            
-            'app':{'S':f'{application}'},
+            'pk': {'S': f'user#{username}'},
+            'sk':{'S':f'app#{application}'},            
+            'gsi_id':{'S':f'user_id#{id}'},
             'password':{'S':f'{hashed_password}'},
             'first_name':{'S':f'{first_name}'},
             'last_name':{'S':f'{last_name}'},

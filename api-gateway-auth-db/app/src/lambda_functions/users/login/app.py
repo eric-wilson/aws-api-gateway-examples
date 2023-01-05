@@ -2,9 +2,7 @@ import json
 import logging
 import os
 
-try:
-
-    
+try:    
     from common.user_service import UserService    
 except:
         

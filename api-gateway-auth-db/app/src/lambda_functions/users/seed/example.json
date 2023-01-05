@@ -66,6 +66,28 @@
         "scopes": [
           "tester"
         ]
+      },
+      {
+        "id": "b2a98ad8-6493-4e6d-ac77-280d6aede922",
+        "username": "user+001@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_one",
+        "first_name": "user",
+        "last_name": "001",
+        "scopes": [      
+          "user"
+        ]
+      },
+      {
+        "id": "4e20db70-d962-4a5c-becf-01046afc0b79",
+        "username": "superuser+001@example.com",
+        "password": "$up3r$3cr3+",
+        "application": "application_one",
+        "first_name": "super-user",
+        "last_name": "001",
+        "scopes": [      
+          "super-user"
+        ]
       }
     ]
   }

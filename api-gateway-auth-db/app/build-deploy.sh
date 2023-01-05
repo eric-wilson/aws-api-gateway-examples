@@ -1,4 +1,15 @@
-#sam delete --profile geekcafe-dev --region us-east-1 --stack-name dev-capstone-main --no-prompts
 
+
+if [ "$1" ]; then
+    if [ "$1" == "-d" ]; then
+        echo "-d is provided. deleting the stack..."
+        sam delete --profile ${deploy_profile} --region us-east-1 --stack-name dev-capstone-main --no-prompts
+    fi
+    
+fi
+
+echo "building the sam template"
 sam build
-sam deploy --profile geekcafe-dev --stack-name dev-capstone-main --no-confirm-changeset
+
+echo "deploying the sam template"
+sam deploy --profile ${deploy_profile} --stack-name dev-capstone-main --no-confirm-changeset
