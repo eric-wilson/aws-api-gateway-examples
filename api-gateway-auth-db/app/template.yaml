@@ -52,6 +52,7 @@ Resources:
         Authorizers:
           HttpApiLambdaAuthorizer:
             #FunctionPayloadType: REQUEST
+            AuthorizerResultTtlInSeconds: 5
             AuthorizerPayloadFormatVersion: 2.0
             EnableSimpleResponses: true
             FunctionArn: !GetAtt HttpApiLambdaFunctionAuthorizer.Arn              
@@ -59,9 +60,9 @@ Resources:
             Identity:
               Headers:
                 - Authorization
-        #EnableIamAuthorizer: False
-        #DefaultAuthorizer: HttpApiLambdaAuthorizer
+           
       AccessLogSettings:
+        # add logging
         DestinationArn: !GetAtt HttpApiLogGroup.Arn
         Format: >-
           '{ 
@@ -74,11 +75,29 @@ Resources:
           "status":"$context.status", 
           "integrationErrors": "$context.integrationErrorMessage", 
           "errors": "$context.error.message",
-          "authError": "$context.authorizer.message" 
+          "authMessage": "$context.authorizer.message",
+          "authError": "$context.authorizer.error",
+          "context": "$context"
           }'
 
-
-  
+  # TODO find out how we can use this, if it's not defined under the HttpApi
+  # Even though, I'm referencing it here to the HttpApi resource, I can't reference it in the
+  # Serverless Functions (the SAM parser doesn't see it bound to the HttpApi)
+  # If I could create it like below then I can get the `id` and make the authorizor slightly more secure on the permission boundry
+  # CustomJWtLambdaAuthorizer:
+  #   Type: AWS::ApiGatewayV2::Authorizer
+  #   Properties:
+  #     Name: CustomJWtLambdaAuthorizer
+  #     ApiId: !Ref HttpApi
+  #     AuthorizerType: REQUEST
+  #     #AuthorizerCredentialsArn: Arn
+  #     AuthorizerUri: !Sub >-
+  #       arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HttpApiLambdaFunctionAuthorizer.Arn}/invocations
+        
+  #     AuthorizerPayloadFormatVersion: 2.0      
+  #     AuthorizerResultTtlInSeconds: 5
+  #     IdentitySource:
+  #       - $request.header.Authorization
       
 
   UserLoginFunction:
@@ -101,9 +120,13 @@ Resources:
             Path: /login
             Method: POST
             ApiId: !Ref HttpApi
+      Timeout: 300
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ApplicationTable
 
   UserListFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: src/lambda_functions/users/list
       Handler: app.lambda_handler
@@ -124,7 +147,10 @@ Resources:
             ApiId: !Ref HttpApi
             Auth:
               Authorizer: HttpApiLambdaAuthorizer
-              
+      Timeout: 300
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ApplicationTable        
             
 
 
@@ -141,7 +167,11 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref ApplicationTable
-  
+      Timeout: 300
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ApplicationTable
+     
 
   HttpApiLambdaFunctionAuthorizer:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -153,14 +183,16 @@ Resources:
         - x86_64
       Layers:
         - !Ref UserCommonLayer
-      Events:
-        LoginUser:
-          Type: HttpApi
-          Properties:
-            Path: /authorizer
-            Method: POST
-            ApiId: !Ref HttpApi
+     
 
+  AuthorizerPermissionToInvoke:
+     Type: AWS::Lambda::Permission
+     Properties:
+       Principal: apigateway.amazonaws.com
+       FunctionName: !Ref HttpApiLambdaFunctionAuthorizer       
+       Action: lambda:InvokeFunction
+       # I'm not crazy about the wild card but we can't get the authorizerid back
+       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/authorizers/*"
 
   HttpApiLogGroup:
     Type: AWS::Logs::LogGroup
@@ -168,7 +200,9 @@ Resources:
       LogGroupName: !Sub "/${CompanyName}/${ApplicationName}/${HttpApi}"
       RetentionInDays: 30
 
- 
+  
+  
+
 
 Outputs:
   ApiUri:
