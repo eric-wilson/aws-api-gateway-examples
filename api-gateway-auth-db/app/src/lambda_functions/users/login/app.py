@@ -15,6 +15,9 @@ log = logging.getLogger(location)
 loglevel = os.getenv("LOG_LEVEL")
 # default to info (normal default is warning)
 log.setLevel('INFO')
+TOKEN_EXPIRE = os.getenv("JWT_TOKEN_EXPIRE")
+if TOKEN_EXPIRE is None:
+    TOKEN_EXPIRE = 60 * 60 * 3
 
 if loglevel:
     log.setLevel(loglevel)
@@ -36,7 +39,7 @@ def lambda_handler(event, context):
         
         if userService.login(event):
             success = True
-            token = userService.generate_token()# get_token(event)
+            token = userService.generate_token(TOKEN_EXPIRE)
 
     except Exception as e:
         error = f"{str(e)}"
@@ -49,10 +52,4 @@ def lambda_handler(event, context):
             "token": f'{token}'
         }),
     }
-
-
-
-
-
-
 

@@ -20,7 +20,7 @@ def lambda_handler(event, context):
     log.info(event_info)
     print(event_info)
     
-   
+    # very basic call to list the users (uses scan ~ not performat for large datasets)
 
    
     return {

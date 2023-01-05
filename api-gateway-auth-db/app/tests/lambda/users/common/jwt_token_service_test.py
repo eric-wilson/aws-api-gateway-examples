@@ -27,7 +27,7 @@ class MyTestCase(unittest.TestCase):
     def test_decode_jwt(self):
         ts = TokenService()
         request = RequestModel()
-        request.client_id = "123456789"
+        request.client_id = "application_one"
         request.email = "first.last@example.com"
         jwt = ts.encode_jwt_token(request=request)
         #print(f'jwt: {jwt}')
@@ -38,6 +38,19 @@ class MyTestCase(unittest.TestCase):
 
         self.assertIsNotNone(decoded)
 
+    def test_decode_jwt(self):
+        ts = TokenService()
+        request = RequestModel()
+        request.client_id = "https://geekcafe.com"
+        request.email = "first.last@example.com"
+        jwt = ts.encode_jwt_token(request=request)
+        #print(f'jwt: {jwt}')
+        self.assertIsNotNone(jwt)
+
+        decoded = ts.verify_jwt_token(jwt)
+        #print(f'decoded: {decoded}')
+
+        self.assertIsNotNone(decoded)
 
     def test_token_jwt_with_scopes(self):
         user = self.helper_get_user()

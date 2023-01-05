@@ -152,7 +152,48 @@ Resources:
         Variables:
           TABLE_NAME: !Ref ApplicationTable        
             
-
+  
+  TokenView:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: src/lambda_functions/authentication/token/view
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UserCommonLayer
+      
+      Events:
+        GetAllItems:
+          Type: HttpApi
+          Properties:
+            Path: /token/view
+            Method: GET
+            ApiId: !Ref HttpApi
+            
+      Timeout: 5
+  
+  TokenValidate:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: src/lambda_functions/authentication/token/validate
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UserCommonLayer
+      
+      Events:
+        GetAllItems:
+          Type: HttpApi
+          Properties:
+            Path: /token/validate
+            Method: GET
+            ApiId: !Ref HttpApi
+            
+      Timeout: 5
 
   UserSeed:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction

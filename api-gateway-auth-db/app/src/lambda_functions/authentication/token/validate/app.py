@@ -8,7 +8,7 @@ except:
         
     from jwt_token_service import TokenService
 
-location = "/authentication/authorizer"
+location = "/authentication/token/validate"
 log = logging.getLogger(location)
 loglevel = os.getenv("LOG_LEVEL")
 # default to info (normal default is warning)
@@ -20,37 +20,30 @@ if loglevel:
 
 def lambda_handler(event, context):
     
-    #event_info = f'{location}: {json.dumps(event, default=str)}'
-    #log.info(event_info)
-    #print(event_info)
-    
-    
-    # try:
-    #     event_info = f'{location}: {json.dumps(event, default=str)}'
-    #     log.info(event_info)
-    #     print(event_info)
-        
-    #     #return 200
-    # except Exception as e:
-    #     print(str(e))
-    
-    is_authorized = is_token_valid(event)
+    error = None
+    message = None
+
+    try:
+        message = valdiate_token(event)
+    except Exception as e:
+        error = str(e)
     
     response = {
-            "isAuthorized": is_authorized,
-            "context": {
-                "stringKey": "value",
-                "numberKey": 1,
-                "booleanKey": True,
-                "arrayKey": ["value1", "value2"],
-                "mapKey": {"value1": "value2"}
-            }
-        }
-    
+        "statusCode": 200,
+        "body": json.dumps({
+            "location": f"{location}",                        
+            "error": f'{error}',
+            "token": f'{message}'
+        }),
+    }
+
+    print(response)
     return response
 
+    
 
-def is_token_valid(event):
+
+def valdiate_token(event):
     if "headers" in event:
         #print('found headers')
         if "authorization" in event["headers"]:
@@ -61,12 +54,14 @@ def is_token_valid(event):
                 encoded = str(encoded).removeprefix("Bearer").strip()
                 decoded = ts.verify_jwt_token(encoded)
                 print(f'decoded: {decoded}')
-                return True
+                return "valid"
             except Exception as e:
                 print(f' failed to decoded token {str(e)}')
+                return str(e)
     else:
         print('no headers')
+        return "no headers to validate"
     
     
-    return False
+    return "n/a"
         
