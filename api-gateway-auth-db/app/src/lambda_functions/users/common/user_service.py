@@ -35,10 +35,12 @@ class UserService():
     
         self.user = UserModel()
         user = get_user(username, application)
-        user.is_valid = validate_user_login(username, password, application, user)
-        self.user = user
-
-        return user.is_valid
+        if user is not None:
+            user.is_valid = validate_user_login(username, password, application, user)
+            self.user = user
+            return user.is_valid
+        
+        return False
 
     
     def get_json_data(self, varname, parameter):

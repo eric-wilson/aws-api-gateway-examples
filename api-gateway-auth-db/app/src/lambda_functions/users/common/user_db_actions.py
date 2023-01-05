@@ -1,13 +1,17 @@
 import boto3
 import logging
 import datetime
+import os
 from hash_algo import generate_hashed_password, generate_user_id
 from user_db_model import UserModel
 
 
 location = "common/users"
 log = logging.getLogger(f"{location}")
-table_name = "ApplicationTable"
+
+table_name = os.getenv("TABLE_NAME")
+if table_name is None:
+    table_name = "ApplicationTable"
 dynamodb_client = boto3.client('dynamodb')
 dynamodb_resource = boto3.resource('dynamodb')
 table = dynamodb_resource.Table(table_name)
