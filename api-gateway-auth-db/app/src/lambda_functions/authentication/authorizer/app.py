@@ -112,7 +112,7 @@ def get_allowed_scopes():
     if SCOPES is not None:
         if type(SCOPES) is str:
             LOADED_SCOPES = parse_scopes(SCOPES)
-
+            return LOADED_SCOPES
 
 def parse_scopes(scopes):
 
