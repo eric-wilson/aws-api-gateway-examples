@@ -6,15 +6,15 @@ Parameters:
   AppName:
     Type: String
     Description: The Name of the application / for the user pool
-    Default: "demo-fudgesicle"
+    Default: "demo-app"
   CallbackUrls:
     Type: CommaDelimitedList
     Description: List of domains allowed to use this userpool
-    Default: "https://geekcafe.com/callback,https://example.com/callback"
+    Default: "https://localhost:5656/callback,https://example.com/callback"
   LogoutUrls:
     Type: CommaDelimitedList
     Description: List of domains allowed to use this userpool
-    Default: "https://geekcafe.com/signout,https://example.com/signout"
+    Default: "https://localhost:5656/signout,https://example.com/signout"
   AdminUserEmail:
     Type: String
     Description: Email address for the administrator. Leave empty if you don't want one created.  Usefull in demos or lower environments.
@@ -32,11 +32,11 @@ Parameters:
   CustomDomainName:
     Type: String
     Description: The domain name you want to setup for custom loging example auth.example.com
-    Default: "auth.geekcafe.com"
+    Default: ""
   SSLCertificateArn:
     Type: String
     Description: the ssl certification for the 
-    Default: "arn:aws:acm:us-east-1:484433161997:certificate/78a33fd3-2ab3-449f-b60e-cc2db86bc080"
+    Default: ""
 Conditions:
   CreateScopes: !Equals [!Ref AddGroupsToScopes, 'true' ]
   CreateRegularUserEmail: !Not [ !Equals [!Ref RegularUserEmail, "" ] ]

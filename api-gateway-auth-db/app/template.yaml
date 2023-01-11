@@ -195,6 +195,9 @@ Resources:
             ApiId: !Ref HttpApi
             Auth:
               Authorizer: AdminAuthorizer
+              # Authorization Scopes are only valid for COGNITO_USER_POOLS and JWT authorization 
+              # AuthorizationScopes:
+              #   - admin
       Timeout: 300
       Environment:
         Variables:
